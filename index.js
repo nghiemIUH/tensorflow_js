@@ -1,23 +1,14 @@
 const express = require("express");
-const tf = require("@tensorflow/tfjs-node");
-const fs = require("fs");
-
 const app = express();
+const route = require("./route/index");
+const multer = require("multer");
+const upload = multer({ dest: "../uploads/" });
 app.use(express.static("static"));
-app.get("/", async (req, res) => {
-    const model = await tf.loadLayersModel(
-        "http://localhost:3000/modeljs/model.json"
-    );
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-    // read image
+app.use(upload.single("digit"));
 
-    const img = fs.readFileSync(`${__dirname}/static/img.png`);
-    let decodeImage = tf.node.decodeImage(img, 1);
-    decodeImage = tf.reshape(decodeImage, [1, 784]);
-    const predict = model.predict(decodeImage);
-    const result = tf.argMax(predict, 1).dataSync();
-
-    res.send(`Ket qua la: ${result}`);
-});
+route(app);
 
 app.listen(3000);
